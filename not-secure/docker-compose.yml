@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  sqlite-db:
+    image: alpine:latest
+    container_name: sqlite_clients
+    volumes:
+      - ./data:/data
+      - ./init.sql:/init.sql
+    command: >
+      sh -c "apk add --no-cache sqlite && 
+             sqlite3 /data/clients.db < /init.sql && 
+             tail -f /dev/null"

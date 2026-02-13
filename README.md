@@ -75,8 +75,3 @@ Dans un environnement de production réel :
 2. Utiliser des **Docker Secrets** ou un gestionnaire de clés (HashiCorp Vault) pour stocker la clé privée.
 
 ---
-
-
-```
-
-**Est-ce que tu veux que je t'aide à rédiger le script de déchiffrement final pour compléter ton dépôt GitHub ?**

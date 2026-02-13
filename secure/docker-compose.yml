@@ -1,0 +1,12 @@
+services:
+  secure-sqlite:
+    image: python:3.11-slim
+    container_name: sqlite_encrypted
+    volumes:
+      - ./data2:/root/db
+      - ./encrypt_db.py:/app/encrypt_db.py
+    working_dir: /app
+    command: >
+      sh -c "pip install cryptography && 
+             python encrypt_db.py && 
+             tail -f /dev/null"

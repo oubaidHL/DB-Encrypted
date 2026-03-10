@@ -1,0 +1,24 @@
+# TP1 SecureNet SA — Règles personnalisées
+# RAPPEL : une règle = une seule ligne
+
+# --- Règles de test basiques (pour vérifier que Suricata fonctionne) ---
+
+# Détecte tout ping ICMP vers HOME_NET
+alert icmp any any -> $HOME_NET any (msg:"LOCAL Ping ICMP detecte"; itype:8; sid:9000010; rev:1;)
+
+# Détecte toute requête HTTP vers HOME_NET
+###alert http any any -> $HOME_NET $HTTP_PORTS (msg:"LOCAL Requete HTTP detectee"; flow:established,to_server; sid:9000011; rev:1;)
+
+# --- Règles TP (Partie 3) ---
+
+# Règle A — Scan de ports : 20 paquets SYN depuis la même source en moins de 5 secondes
+alert tcp any any -> $HOME_NET any (msg:"LOCAL Scan de ports detecte - 20 SYN en 5s"; flags:S; threshold:type threshold,track by_src,count 20,seconds 5; classtype:attempted-recon; sid:9000001; rev:1;)
+
+# Règle B — Brute force SSH : 5 tentatives vers port 22 depuis la même source en moins de 60 secondes
+alert tcp any any -> $HOME_NET 22 (msg:"LOCAL Brute force SSH - 5 tentatives en 60s"; flags:S; threshold:type threshold,track by_src,count 5,seconds 60; classtype:attempted-admin; sid:9000002; rev:1;)
+
+# Règle B-IPS — Mode blocage Partie 4 (décommenter + commenter Règle B)
+# drop tcp any any -> $HOME_NET 22 (msg:"LOCAL IPS Brute force SSH BLOQUE"; flags:S; threshold:type threshold,track by_src,count 5,seconds 60; classtype:attempted-admin; sid:9000003; rev:2;)
+
+# Règle C — Transfert fichier .exe via HTTP
+alert http any any -> $HOME_NET any (msg:"LOCAL Transfert fichier executable .exe via HTTP"; flow:established,to_server; http.uri; content:".exe"; nocase; classtype:policy-violation; sid:9000004; rev:1;)

@@ -1,0 +1,72 @@
+networks:
+  lab_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+
+services:
+
+# ──────────────────────────────────────────
+  # SERVICE 1 : IDS — Suricata + TMUX (Fedora Based)
+  # ──────────────────────────────────────────
+  ids:
+    image: jasonish/suricata:latest
+    container_name: ids
+    network_mode: "service:target"
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ./suricata/rules/local.rules:/etc/suricata/rules/local.rules
+      - suricata_logs:/var/log/suricata
+    entrypoint: []
+    command: >
+      bash -c "
+        dnf install -y tmux && dnf install -y jq &&
+        mkdir -p /var/log/suricata /etc/suricata/rules &&
+        touch /var/log/suricata/fast.log /var/log/suricata/eve.json &&
+        exec suricata -c /etc/suricata/suricata.yaml -i eth0
+      "
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────
+  # SERVICE 2 : CIBLE — SSH (root:root)
+  # ──────────────────────────────────────────
+  target:
+    image: rastasheep/ubuntu-sshd:18.04
+    container_name: target
+    hostname: target
+    networks:
+      lab_net:
+        ipv4_address: 192.168.100.20
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────
+  # SERVICE 3 : ATTAQUANT
+  # ──────────────────────────────────────────
+  attacker:
+    build:
+      context: ./attacker
+    container_name: attacker
+    hostname: attacker
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      lab_net:
+        ipv4_address: 192.168.100.100
+    command: >
+      bash -c "
+        echo '[*] Attacker ready.' &&
+        tail -f /dev/null
+      "
+    restart: unless-stopped
+
+volumes:
+  suricata_logs:

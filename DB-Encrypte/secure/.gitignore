@@ -1,0 +1,4 @@
+# .gitignore
+*.pem
+data2/*.db
+__pycache__/
